@@ -1,0 +1,38 @@
+{
+  "name": "@statewalker/models",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"**/*.ts\"",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@preact/signals-core": "^1.5.1",
+    "lodash.isequal": "^4.5.0"
+  },
+  "devDependencies": {
+    "@statewalker/eslint-config": "*",
+    "@statewalker/typescript-config": "*",
+    "@types/lodash.isequal": "^4.5.8",
+    "@types/node": "^20.11.10",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2",
+    "tsup": "^8.0.1"
+  }
+}
