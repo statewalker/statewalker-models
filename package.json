@@ -19,10 +19,11 @@
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
     "lint": "eslint \"**/*.ts\"",
-    "test": "vitest"
+    "test": "vitest --run",
+    "test:watch" : "vitest"
   },
   "dependencies": {
-    "@preact/signals-core": "^1.5.1",
+    "@preact/signals-core": "^1.6.0",
     "lodash.isequal": "^4.5.0"
   },
   "devDependencies": {
