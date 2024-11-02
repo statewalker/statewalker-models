@@ -1,5 +1,5 @@
 import { describe, expect, it } from "./deps.ts";
-import defineProperties from "../src/defineProperties.ts";
+import { defineProperties, autorun, update } from "../src/defineProperties.ts";
 
 type PersonInfo = {
   firstName: string;
@@ -17,7 +17,8 @@ describe("defineProperties", () => {
     );
 
     const results: string[] = [];
-    obj.$$(({ firstName, lastName }: PersonInfo) => {
+    autorun(() => {
+      const { firstName, lastName } = obj;
       results.push(`Hello ${firstName} ${lastName}!`);
     });
     expect(results).toEqual(["Hello John Smith!"]);
@@ -43,14 +44,15 @@ describe("defineProperties", () => {
     );
 
     const results: string[] = [];
-    obj.$$(({ firstName, lastName }: PersonInfo) => {
+    autorun(() => {
+      const { firstName, lastName } = obj;
       results.push(`Hello ${firstName} ${lastName}!`);
     });
     expect(results).toEqual(["Hello John Smith!"]);
 
-    obj.$$update((o: PersonInfo) => {
-      o.firstName = "Jean";
-      o.lastName = "Dupon";
+    update(() => {
+      obj.firstName = "Jean";
+      obj.lastName = "Dupon";
     });
     expect(results).toEqual(["Hello John Smith!", "Hello Jean Dupon!"]);
   });
@@ -80,13 +82,11 @@ describe("defineProperties", () => {
       defineProperties(this, ["firstName", "lastName"]);
     }
 
-    autorun<T extends this>(action: (person: T) => void) {
-      const run: (action: (person: T) => void) => void = (this as any).$$;
-      run(action);
+    autorun(action: (person: this) => void) {
+      autorun(() => action(this));
     }
-    update<T extends this>(action: (person: T) => void) {
-      const run: (action: (person: T) => void) => void = (this as any).$$update;
-      run(action);
+    update(action: (person: this) => void) {
+      return update(() => action(this));
     }
   }
 

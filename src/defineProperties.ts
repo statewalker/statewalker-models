@@ -1,4 +1,4 @@
-import { batch, computed, effect, Signal, signal } from "@preact/signals-core";
+import { batch, computed, effect, type Signal, signal } from "./deps.ts";
 
 /**
  * This method re-defines properties of the given object using Signals.
@@ -74,39 +74,26 @@ import { batch, computed, effect, Signal, signal } from "@preact/signals-core";
  * // Output: "Hello James Bond!"
  * ```
  */
-export type ExtendedType<T> = T & {
-  $$: (action: (instance: T) => void) => () => void;
-  $$update: (action: (instance: T) => void) => void;
-};
 
-export function getPropertiesDescriptors(
-  obj: null | object
-): Record<string, TypedPropertyDescriptor<any>> {
-  if (!obj) return {};
-  const descriptors: Record<string, TypedPropertyDescriptor<any>> = {};
-  for (
-    let o: object | null = obj;
-    !!o && o !== Object.prototype;
-    o = Reflect.getPrototypeOf(o)
-  ) {
-    for (const [key, descriptor] of Object.entries(
-      Object.getOwnPropertyDescriptors(o)
-    )) {
-      if (key in descriptors) continue;
-      descriptors[key] = descriptor;
+export function autorun<T>(compute: () => void | (() => void)) {
+  return effect(() => {
+    const action = compute();
+    if (typeof action === "function") {
+      Promise.resolve().then(() => batch(action));
     }
-  }
-  return descriptors;
+  });
 }
 
-export default function defineProperties<T = object>(
-  obj: T,
-  fields: string[] = []
-): ExtendedType<T> {
+export function update(compute: () => void) {
+  return batch(() => compute());
+}
+
+export function defineProperties<T = object>(obj: T, fields: string[] = []): T {
   const self: any = obj;
   const properties = (self["$$properties"] = self["$$properties"] || {});
   const descriptors = getPropertiesDescriptors(self);
   for (const name of fields) {
+    if (name in properties) continue;
     const descriptor = descriptors[name];
     let sgn: Signal | undefined = undefined;
     let set;
@@ -125,26 +112,25 @@ export default function defineProperties<T = object>(
     properties[name] = property;
     Object.defineProperty(self, name, property);
   }
-  if (!self.$$) {
-    Object.defineProperty(self, "$$", {
-      get: () =>
-        function (compute: (obj: T) => () => void | void) {
-          return effect(() => {
-            const action = compute(self);
-            if (typeof action === "function") {
-              Promise.resolve().then(() => batch(action));
-            }
-          });
-        }.bind(self),
-    });
-  }
-  if (!self.$$update) {
-    Object.defineProperty(self, "$$update", {
-      get: () =>
-        function (compute: (obj: T) => void) {
-          return batch(() => compute(self));
-        }.bind(self),
-    });
-  }
   return self;
+}
+
+export function getPropertiesDescriptors(
+  obj: null | object,
+): Record<string, TypedPropertyDescriptor<any>> {
+  if (!obj) return {};
+  const descriptors: Record<string, TypedPropertyDescriptor<any>> = {};
+  for (
+    let o: object | null = obj;
+    !!o && o !== Object.prototype;
+    o = Reflect.getPrototypeOf(o)
+  ) {
+    for (const [key, descriptor] of Object.entries(
+      Object.getOwnPropertyDescriptors(o),
+    )) {
+      if (key in descriptors) continue;
+      descriptors[key] = descriptor;
+    }
+  }
+  return descriptors;
 }

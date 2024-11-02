@@ -1,7 +1,7 @@
-import defineProperties from "./defineProperties.ts";
+import { defineProperties, update, autorun } from "./defineProperties.ts";
 import newRegistry from "./newRegistry.ts";
 
-export type WatchFunction<T> = (instance: T) => void | (() => void);
+export type WatchFunction<T> = (instance: T) => undefined | (() => void);
 export type CleanupFunction = () => void;
 
 const noop = () => {};
@@ -41,7 +41,7 @@ export function newBaseClass<T extends new (...args: any[]) => any>(
      * the registered cleanup method will be called when this object is closed
      * (destroyed).
      */
-    _register: (cleanup: CleanupFunction) => CleanupFunction;
+    _register: (cleanup?: CleanupFunction) => CleanupFunction;
 
     /**
      * Internal callback method used to invoke all registered cleanup functions.
@@ -66,15 +66,9 @@ export function newBaseClass<T extends new (...args: any[]) => any>(
      * @returns a cleanup function which removes updates subscriptions
      */
     autorun(compute: WatchFunction<this>): CleanupFunction {
-      return this._register(this.$$(compute));
+      return this._register(autorun(() => compute(this)));
     }
-    /**
-     * This field is a stub overwritten by the `_defineProperties` method
-     * in the constructor.
-     * You should not use it directly. Use the `autorun` method instead.
-     */
-    $$: (compute: WatchFunction<this>) => CleanupFunction = () => noop;
-
+  
     /**
      * This utility method allows to update multiple active fields
      * without notifying all registered listeners on updates of each
@@ -106,17 +100,9 @@ export function newBaseClass<T extends new (...args: any[]) => any>(
      * @param action a callback function updating multiple fields on this object
      */
     update(action: (instance: this) => void) {
-      return this.$$update(action);
+      return update(() => action(this));
     }
-    /**
-     * An internal method used to update multiple active fields at once.
-     *
-     * This field is a stub overwritten by the `_defineProperties` method
-     * in the constructor.
-     * You should not use it directly. Use the `update` method instead.
-     */
-    $$update: (action: (instance: this) => void) => void = noop;
-
+    
     /**
      * This method re-defines properties on this instance and transform them
      * to "active" properties. Changes of active properties can be intercepted
@@ -133,12 +119,6 @@ export function newBaseClass<T extends new (...args: any[]) => any>(
      */
     constructor(...args: any[]) {
       super(...args);
-      // -------------------------------
-      // Initialization of $$ and $$update methods.
-      // These methods are overloaded by the _defineProperties method.
-      (this as any).$$ = undefined;
-      (this as any).$$update = undefined;
-      this._defineProperties();
       // -------------------------------
       [this._register, this._cleanup] = newRegistry();
       // autoBind(this);

@@ -6,13 +6,13 @@ export type RegistryCleanup = ((skip?: boolean) => void) & {
 export default function newRegistry(
   onError = console.error,
 ): [
-  (action: RegistryAction) => RegistryCleanup,
+  (action?: RegistryAction) => RegistryCleanup,
   () => void,
   (action: RegistryAction) => void,
 ] {
   let counter = 0;
   const registrations: Record<number, RegistryCleanup> = {};
-  const register = (action: RegistryAction): RegistryCleanup => {
+  const register = (action?: RegistryAction): RegistryCleanup => {
     const id = counter++;
     const cleanup = (skip = false) => {
       try {

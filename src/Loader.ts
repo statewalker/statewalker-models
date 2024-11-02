@@ -1,4 +1,4 @@
-import isEqual from "lodash.isequal";
+import { isEqual } from "./deps.ts";
 import { BaseClass } from "./BaseClass.ts";
 
 /**
@@ -73,7 +73,7 @@ export class Loader<Request, Response> extends BaseClass {
       "_error",
       "_prevRequest",
       "request",
-      "_response",
+      "_response"
     );
     this._runLoading = this._runLoading.bind(this);
     this.autorun(() => {
