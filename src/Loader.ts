@@ -18,14 +18,14 @@ export class Loader<Request, Response> extends BaseClass {
    * Internal active field; should not be accessed directly.
    * Use the "loading" property.
    */
-  _loading: boolean = false;
+  _loading: number = 0;
 
   /**
    * Read-only property defining if the loading process is started
    * and not finished yet.
    */
   get loading() {
-    return this._loading;
+    return this._loading > 0;
   }
 
   /**
@@ -105,7 +105,7 @@ export class Loader<Request, Response> extends BaseClass {
     if (!this._isRequestUpdated(this._prevRequest, request)) return;
     try {
       this._prevRequest = request;
-      this._loading = true;
+      this._loading++;
       this._error = undefined;
 
       if (!request) {
@@ -119,7 +119,7 @@ export class Loader<Request, Response> extends BaseClass {
       this._response = undefined;
       this._error = error;
     } finally {
-      this._loading = false;
+      if (this._loading > 0) this._loading--;
     }
   }
 
