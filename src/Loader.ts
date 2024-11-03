@@ -73,7 +73,7 @@ export class Loader<Request, Response> extends BaseClass {
       "_error",
       "_prevRequest",
       "request",
-      "_response"
+      "_response",
     );
     this._runLoading = this._runLoading.bind(this);
     this.autorun(() => {
@@ -101,12 +101,10 @@ export class Loader<Request, Response> extends BaseClass {
    * @returns a promise resolved when the loading process is finished.
    */
   async _runLoading(): Promise<void> {
+    const request = this.request;
+    if (!this._isRequestUpdated(this._prevRequest, request)) return;
     try {
-      if (this._loading) return;
-      const request = this.request;
-      if (!this._isRequestUpdated(this._prevRequest, request)) return;
       this._prevRequest = request;
-
       this._loading = true;
       this._error = undefined;
 
