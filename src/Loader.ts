@@ -80,6 +80,7 @@ export class Loader<Request, Response> extends BaseClass {
       if (!this.request) return;
       return this._runLoading;
     });
+    options.request && (this.request = options.request);
   }
 
   /**
